@@ -1,129 +1,382 @@
-```markdown
-# ADAS Perception Pipeline
+# 🚗 Lane Detection and Vehicle Perception System
 
-An advanced, headless real-time Advanced Driver Assistance System (ADAS) perception simulator. This pipeline integrates computer vision algorithms with deep learning models to perform synchronized lane boundary tracking, dynamic perspective distance grid projection, and precise vehicle detection with absolute depth mapping.
+A computer vision and deep learning project that combines classical lane detection techniques with YOLOv8 object detection to create a perception pipeline for road-scene analysis.
 
----
-
-## 🚀 Features
-
-- **Object Detection & Classification:** Powered by **YOLOv8m (Medium)** to track vehicles, pedestrians, and road hazards with enhanced stability and minimized class-flickering.
-- **Dynamic Perspective Distance Grid:** Projects a real-time range grid (1.0m, 3.0m, and 5.0m intervals) mapped directly to the road plane utilizing automated line-slope analysis.
-- **Fail-Safe Fallback Matrix:** Incorporates an automated fallback layout mimicking a vehicle's reversing camera system to maintain baseline safety indicators when dynamic lane tracking is temporarily obscured by severe glare or sharp curves.
-- **Headless Optimization:** Engineered to process frame streams directly in the background, maximizing execution throughput by discarding synchronous window-rendering bottlenecks.
-- **Hardware Accelerated Architecture:** Programmed to auto-route deep learning computation to available **NVIDIA CUDA Cores** for high-performance inference.
+The system processes dashcam footage, detects lane boundaries, projects a perspective-based distance grid, identifies road users, and estimates their approximate distance from the camera using monocular depth estimation principles.
 
 ---
 
-## 🛠️ Tech Stack & Dependencies
+# 📌 Project Overview
 
-- **Core Language:** Python 3.8+
-- **Deep Learning Framework:** PyTorch (CUDA-optimized)
-- **Object Detection Engine:** Ultralytics YOLOv8
-- **Computer Vision Operators:** OpenCV (Open Source Computer Vision Library)
-- **Numerical Processing Engine:** NumPy
+This project was built to explore the core perception concepts used in modern Advanced Driver Assistance Systems (ADAS).
+
+The pipeline combines:
+
+* Classical Computer Vision (OpenCV)
+* Deep Learning Object Detection (YOLOv8)
+* Perspective Geometry
+* Monocular Distance Estimation
+* Video Processing and Annotation
+
+The final output is an annotated video containing:
+
+* Lane boundary visualization
+* Dynamic road distance grid
+* Vehicle and pedestrian detection
+* Estimated object distance in meters
+* Safety-aware object highlighting
 
 ---
 
-## 💻 Hardware Benchmarks & Requirements
+# 🎯 Key Features
 
-While this codebase operates across standard CPU architectures, it is explicitly optimized to utilize discrete workstation GPUs for real-time parallel video matrix processing.
+## 1. Lane Detection
 
-| Component | Minimum Specification | Recommended Specification (Workstation Optimized) |
-| :--- | :--- | :--- |
-| **Processor** | Intel Core i5 / AMD Ryzen 5 | Intel Core i7 / Xeon or equivalent |
-| **Memory** | 8 GB RAM | 32 GB RAM (Multi-stream buffer capacity) |
-| **Graphics** | Shared System Architecture | Dedicated NVIDIA GPU (e.g., Quadro P1000 / RTX Series) |
-| **Compute API** | CPU Only execution | NVIDIA CUDA Toolkit 11.8 / 12.1+ |
+The system detects lane boundaries using traditional computer vision techniques.
+
+Pipeline:
+
+1. Convert frame to grayscale
+2. Apply Gaussian blur
+3. Perform Canny edge detection
+4. Apply Region of Interest masking
+5. Detect lines using Probabilistic Hough Transform
+6. Average detected line segments into continuous lane boundaries
+
+Detected lane lines are stabilized by averaging slopes and intercepts.
 
 ---
 
-## 📥 Installation & Setup
+## 2. Dynamic Perspective Distance Grid
 
-Follow these precise steps to provision a localized development sandbox and initialize the execution pipeline:
+A perspective-based grid is projected onto the road surface.
 
-### 1. Clone the Repository
-```bash
-git clone [https://github.com/YOUR_GITHUB_USERNAME/adas-perception-pipeline.git](https://github.com/YOUR_GITHUB_USERNAME/adas-perception-pipeline.git)
-cd adas-perception-pipeline
+Distance zones:
 
+| Zone  | Color  |
+| ----- | ------ |
+| 1.0 m | Red    |
+| 3.0 m | Yellow |
+| 5.0 m | Green  |
+
+The grid dynamically aligns with detected lane boundaries.
+
+This provides a visual approximation of vehicle position relative to the road ahead.
+
+---
+
+## 3. Fallback Safety Grid
+
+When lane detection temporarily fails due to:
+
+* Poor lighting
+* Road glare
+* Occlusions
+* Sharp turns
+
+the system automatically switches to a predefined perspective template.
+
+This ensures that distance guidance remains visible even when lane information becomes unreliable.
+
+---
+
+## 4. YOLOv8 Object Detection
+
+The perception pipeline uses YOLOv8 Medium (YOLOv8m) for object detection.
+
+Detected classes include:
+
+* Cars
+* Trucks
+* Buses
+* Motorcycles
+* Bicycles
+* Pedestrians
+
+The detector is accelerated using GPU computation whenever CUDA is available.
+
+---
+
+## 5. Monocular Distance Estimation
+
+The system estimates approximate object distance using the Pinhole Camera Model.
+
+Formula:
+
+Distance = (Real Object Height × Focal Length) / Bounding Box Height
+
+Known average object heights are assigned to each class:
+
+| Class      | Approximate Height |
+| ---------- | ------------------ |
+| Person     | 1.7 m              |
+| Car        | 1.5 m              |
+| Motorcycle | 1.0 m              |
+| Bus        | 3.0 m              |
+| Truck      | 2.8 m              |
+
+The calculated distance is displayed alongside each detected object.
+
+Example:
+
+```text
+car [4.2m]
+person [7.8m]
 ```
 
-### 2. Isolate with a Virtual Environment
+---
 
-Create an isolated Python execution environment to keep dependencies clean:
+# 🏗 System Architecture
+
+```text
+Input Dashcam Video
+        │
+        ▼
+Frame Extraction
+        │
+        ▼
+Grayscale Conversion
+        │
+        ▼
+Gaussian Blur
+        │
+        ▼
+Canny Edge Detection
+        │
+        ▼
+ROI Masking
+        │
+        ▼
+Hough Line Transform
+        │
+        ▼
+Lane Averaging
+        │
+        ▼
+Dynamic Grid Projection
+        │
+        ▼
+YOLOv8 Object Detection
+        │
+        ▼
+Distance Estimation
+        │
+        ▼
+Frame Annotation
+        │
+        ▼
+Output Video Generation
+```
+
+---
+
+# 🛠 Technologies Used
+
+## Programming Language
+
+* Python 3.8+
+
+## Deep Learning
+
+* Ultralytics YOLOv8
+
+## Computer Vision
+
+* OpenCV
+
+## Numerical Processing
+
+* NumPy
+
+## GPU Acceleration
+
+* PyTorch
+* CUDA
+
+---
+
+# 💻 Hardware Used
+
+Development Machine:
+
+* HP ZBook Studio x360 G5
+* 32 GB RAM
+* NVIDIA Quadro P1000 GPU
+
+The application automatically switches to GPU inference when CUDA is available.
+
+---
+
+# 📂 Project Structure
+
+```text
+project/
+│
+├── local_perception.py
+├── Car.ipynb
+├── README.md
+├── .gitignore
+│
+├── models/
+│   └── yolov8m.pt
+│
+├── input/
+│   └── your_test_driving_video.mp4
+│
+└── output/
+    └── predicted_output.mp4
+```
+
+---
+
+# ⚙ Installation
+
+## Clone Repository
 
 ```bash
-# Initialize environment
+git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
+cd YOUR_REPOSITORY
+```
+
+---
+
+## Create Virtual Environment
+
+### Windows PowerShell
+
+```powershell
 python -m venv venv
-
-# Activate on Windows (PowerShell)
 .\venv\Scripts\Activate.ps1
-
-# Activate on Windows (Classic CMD)
-venv\Scripts\activate.bat
-
-# Activate on Linux / macOS / Git Bash
-source venv/bin/activate
-
 ```
 
-*Note for Windows users:* If script execution is blocked on PowerShell, run `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process` before running the activation path.
+### Windows CMD
 
-### 3. Install CUDA-Optimized Binaries
+```cmd
+venv\Scripts\activate.bat
+```
 
-To prevent PyTorch from defaulting to a slower CPU execution layer, explicitly install the CUDA-mapped binaries:
+### Linux / macOS
 
 ```bash
-pip install torch torchvision --index-url [https://download.pytorch.org/whl/cu121](https://download.pytorch.org/whl/cu121)
-
+source venv/bin/activate
 ```
 
-### 4. Install Component Packages
+---
 
-Deploy the remaining structural vision and deep learning packages:
+## Install PyTorch
+
+CUDA Version:
+
+```bash
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+```
+
+CPU Version:
+
+```bash
+pip install torch torchvision
+```
+
+---
+
+## Install Remaining Dependencies
 
 ```bash
 pip install ultralytics opencv-python numpy
-
 ```
 
 ---
 
-## 🏃 Execution Guide
+# ▶ Running the Project
 
-1. Place your input driving video file within the project folder root and name it `your_test_driving_video.mp4` (or update the file path variables in section 2 of the script).
-2. Execute the perception script pipeline from your terminal:
-```bash
-python local_adas_perception.py
-
-```
-
-
-3. Monitor progress benchmarks inside the command prompt window. Upon completion, the annotated stream will be exported as a permanent video file: **`predicted_output.mp4`**.
-
----
-
-## 📊 Pipeline Visual Architecture
-
-The matrix transforms video frames through a linear data-driven pipeline:
+Place:
 
 ```text
- [Raw Frame Input] ──> [Grayscale & Gaussian Blur] ──> [Canny Edge Analytics]
-                                                               │
- [YOLOv8m Target Inference] <── [Perspective Grid Layer] <── [ROI Masking Filter]
-            │
-            ▼
- [Matrix Frame Compilation] ──> [Headless MP4 Video Writer Export]
+your_test_driving_video.mp4
+```
 
+inside the project directory.
+
+Run:
+
+```bash
+python local_perception.py
+```
+
+The pipeline will process the video frame-by-frame and generate:
+
+```text
+predicted_output.mp4
 ```
 
 ---
 
-## 📝 License
+# 📊 Output
 
-Distributed under the MIT License. See `LICENSE` for more information.
+The generated video contains:
 
+* Lane boundaries
+* Distance grid
+* Object bounding boxes
+* Object class labels
+* Estimated object distance
+* Color-coded danger zones
+
+Example:
+
+```text
+Car [2.1m]
+Truck [4.8m]
+Person [7.2m]
 ```
 
-```
+---
+
+# 🔍 Current Limitations
+
+* Distance estimation is approximate and based on assumed object heights.
+* Monocular estimation is less accurate than stereo-camera systems.
+* Lane detection performance may degrade in poor weather conditions.
+* Curved roads can reduce lane fitting accuracy.
+* No object tracking across frames.
+* No sensor fusion (LiDAR, Radar, GPS, IMU).
+
+---
+
+# 🚀 Future Improvements
+
+* Multi-object tracking (DeepSORT / ByteTrack)
+* Lane curvature prediction
+* Bird's Eye View transformation
+* Traffic sign recognition
+* Traffic light detection
+* Collision warning system
+* Driver alert generation
+* Semantic road segmentation
+* Depth estimation using neural networks
+* Real-time webcam integration
+
+---
+
+# 📚 Learning Outcomes
+
+Through this project, the following concepts were explored:
+
+* Computer Vision Fundamentals
+* Edge Detection
+* Hough Transform
+* Region of Interest Masking
+* Perspective Geometry
+* Object Detection
+* GPU Acceleration
+* Video Processing
+* Distance Estimation
+* ADAS Perception Pipelines
+
+---
+
+# 📄 License
+
+This project is released under the MIT License.
+
+Feel free to use, modify, and distribute the code for educational and research purposes.
