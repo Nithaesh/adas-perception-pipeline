@@ -1,3 +1,6 @@
+<img width="1276" height="717" alt="image" src="https://github.com/user-attachments/assets/4e733fa6-0e44-4ca2-9eb9-fc36086b37b4" />
+
+
 # 🚗 Lane Detection and Vehicle Perception System
 
 A computer vision and deep learning project that combines classical lane detection techniques with YOLOv8 object detection to create a perception pipeline for road-scene analysis.
